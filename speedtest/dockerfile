@@ -1,10 +1,14 @@
 FROM python:3.7-alpine
 
+WORKDIR /app
+
 RUN apk update && \
     apk add --virtual build-deps gcc python-dev musl-dev && \
     apk add postgresql-dev
 
 RUN pip3 install speedtest-cli fire psycopg2
 
+COPY ./speedtest.py ./
+
 # Create entry point
-ENTRYPOINT ["python3", "speedtest.py", "--host=$HOST", "--port=$PORT"]
+CMD ["python3", "speedtest.py", "--host=$HOST", "--port=$PORT"]

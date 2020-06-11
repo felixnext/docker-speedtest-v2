@@ -1,10 +1,11 @@
 version: '2'
 serivces:
-    database:
-        image: "postgres:12.3"
+    speedtest-db:
+        #image: "postgres:12.3-alpine"
+        build: "./database"
         restart: always
-        #volumes:
-        #    - .:/data/speedtest
+        volumes:
+            - /data/speedtest:/var/lib/postgresql/data
         environment: 
             POSTGRES_PASSWORD: pwd
 
@@ -13,12 +14,12 @@ serivces:
         #image: speedtest:latest
         #environment:
         depends_on: 
-            - database
+            - speedtest-db
     
     speedtest-api:
         build: "./webapi"
         depends_on:
-            - database
+            - speedtest-db
 
     speedtest-app:
         build: "./webapp"

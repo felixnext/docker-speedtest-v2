@@ -103,7 +103,7 @@ class Tester():
 
         # create insert statement
         # TODO: add security checks that data is there?
-        cur.execute("INSERT INTO speeds (download, upload, ping, timestamp, isp, ip, country) VALUES ({}, {}, {}, '{}', '{}', '{}', '{}')".format(results["download"], results["upload"], results["ping"], results["timestamp"], results["client"]["isp"], results["client"]["ip"], results["client"]["country"]))
+        cur.execute("INSERT INTO speeds (download, upload, ping, measure_time, isp, ip, country) VALUES ({}, {}, {}, '{}', '{}', '{}', '{}')".format(results["download"], results["upload"], results["ping"], results["timestamp"], results["client"]["isp"], results["client"]["ip"], results["client"]["country"]))
         conn.commit()
 
         cur.close()
@@ -112,7 +112,7 @@ class Tester():
         '''Reads from the Database to check if flags are set.'''
         cur = self.conn.cursor()
 
-        cur.execute("SELECT key, value FROM settings")
+        cur.execute("SELECT item, value FROM settings")
         rows = cur.fetchall()
         for row in rows:
             key = row[0]
@@ -130,7 +130,7 @@ class Tester():
 
     def update_flag(self, key, value):
         cur = self.conn.cursor()
-        cur.execute("INSERT INTO settings (key, value) VALUES ('{}', '{}') ON CONFLICT (key) SET value=excluded.value".format(key, value))
+        cur.execute("INSERT INTO settings (item, value) VALUES ('{}', '{}') ON CONFLICT (item) SET value=excluded.value".format(key, value))
         conn.commit()
         cur.close()
 
