@@ -1,0 +1,32 @@
+version: '2'
+serivces:
+    database:
+        image: "postgres:12.3"
+        restart: always
+        #volumes:
+        #    - .:/data/speedtest
+        environment: 
+            POSTGRES_PASSWORD: pwd
+
+    speedtest:
+        build: "./speedtest"
+        #image: speedtest:latest
+        #environment:
+        depends_on: 
+            - database
+    
+    speedtest-api:
+        build: "./webapi"
+        depends_on:
+            - database
+
+    speedtest-app:
+        build: "./webapp"
+        #image: speedtest-app:latest
+        ports: 
+            - "8000:80"
+        depends_on: 
+            - speedtest-api
+networks:
+    public:
+        external: true
