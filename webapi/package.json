@@ -1,0 +1,15 @@
+{
+  "name": "webapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Felix Geilert",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "express": "^4.17.1",
+    "pg": "^8.2.1"
+  }
+}

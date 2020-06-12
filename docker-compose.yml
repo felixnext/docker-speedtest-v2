@@ -1,5 +1,5 @@
 version: '2'
-serivces:
+services:
     speedtest-db:
         #image: "postgres:12.3-alpine"
         build: "./database"
