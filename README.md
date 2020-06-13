@@ -4,26 +4,12 @@ New version of the docker speedtest tool. The components are more decoupled and 
 
 ## Getting Started
 
-First build the docker containers:
-
-```bash
-cd speedtest
-docker build -t speedtest .
-cd ../webapp
-docker build -t speedtest-app .
-cd ..
-```
+First create an environment file (`db.env`) that contains the line `POSTGRES_PASSWORD=<YOUR PASSWORD HERE>`.
 
 You can then run the docker compose script:
 
 ```bash
-docker-compose 
-```
-
-If you want to run the compose script always on startup:
-
-```bash
-docker-compose
+docker-compose up
 ```
 
 ## License

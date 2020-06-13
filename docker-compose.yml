@@ -1,33 +1,45 @@
 version: '2'
 services:
     speedtest-db:
-        #image: "postgres:12.3-alpine"
         build: "./database"
         restart: always
         volumes:
             - /data/speedtest:/var/lib/postgresql/data
-        environment: 
-            POSTGRES_PASSWORD: pwd
+        env_file:
+            - ./db.env
 
     speedtest:
         build: "./speedtest"
-        #image: speedtest:latest
-        #environment:
+        restart: always
         depends_on: 
             - speedtest-db
+        env_file:
+            - ./db.env
+        environment:
+            - POSTGRES_HOST: "speedtest-db"
+            - POSTGRES_PORT: "5432"
     
     speedtest-api:
         build: "./webapi"
+        restart: always
         depends_on:
             - speedtest-db
+        env_file:
+            - ./db.env
+        environment:
+            - POSTGRES_HOST: "speedtest-db"
+            - POSTGRES_PORT: "5432"
 
     speedtest-app:
         build: "./webapp"
-        #image: speedtest-app:latest
+        restart: always
         ports: 
             - "8000:80"
         depends_on: 
             - speedtest-api
+        environment:
+            - API_HOST: "speedtest-api"
+            - API_PORT: 7000
 networks:
     public:
         external: true

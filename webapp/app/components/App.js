@@ -11,3 +11,5 @@ class App extends Component {
 }
 
 export default App;
+
+// TODO: read environment
