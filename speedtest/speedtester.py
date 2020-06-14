@@ -6,6 +6,7 @@ import speedtest as speed
 import fire
 from time import time, sleep
 import psycopg2 as psy
+from dateutil import parser
 
 class Tester():
     def __init__(self, pwd, host, port="5432"):
@@ -95,6 +96,9 @@ class Tester():
         for v in ["download", "upload"]:
             results[v] = results[v] / (1024 * 1024)
         
+        # parse timestamp (+ adjust timezone)
+        results["timestamp"] = parser.parse(results["timestamp"]).astimezone(tz=None)
+        
         # print
         print("INFO: Current speed is: {:.2f} MB/s download - {:.2f} MB/s upload".format(results["download"], results["upload"]))
 
@@ -109,7 +113,7 @@ class Tester():
 
         # create insert statement
         # TODO: add security checks that data is there?
-        cur.execute("INSERT INTO speeds (download, upload, ping, measure_time, isp, ip, country) VALUES ({}, {}, {}, TO_TIMESTAMP('{}', 'YYYY-MM-DDTHH24:MI:SS.USZ'), '{}', '{}', '{}')".format(results["download"], results["upload"], results["ping"], results["timestamp"], results["client"]["isp"], results["client"]["ip"], results["client"]["country"]))
+        cur.execute("INSERT INTO speeds (download, upload, ping, measure_time, isp, ip, country) VALUES ({}, {}, {}, {}, '{}', '{}', '{}')".format(results["download"], results["upload"], results["ping"], results["timestamp"], results["client"]["isp"], results["client"]["ip"], results["client"]["country"]))
         self.conn.commit()
 
         cur.close()

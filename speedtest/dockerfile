@@ -6,7 +6,7 @@ RUN apk update && \
     apk add --virtual build-deps gcc python3-dev musl-dev && \
     apk add postgresql-dev
 
-RUN pip3 install speedtest-cli fire psycopg2
+RUN pip3 install speedtest-cli fire psycopg2 python-dateutil
 
 COPY ./speedtester.py ./
 
