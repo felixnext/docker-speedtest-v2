@@ -1,12 +1,27 @@
+CREATE DATABASE speedtest;
+USE speedtest;
+
 CREATE TABLE speeds(
     id SERIAL PRIMARY KEY NOT NULL,
     download REAL NOT NULL,
     upload REAL NOT NULL,
     ping REAL NOT NULL,
     measure_time TIMESTAMP NOT NULL,
+    record_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ip VARCHAR(20),
     isp VARCHAR(50),
-    country VARCHAR(50)
+    country VARCHAR(50),
+    description TEXT DEFAULT NULL
+);
+
+CREATE TABLE tags(
+    id SERIAL PRIMARY KEY NOT NULL,
+    tag VARCHAR(50) 
+);
+
+CREATE TABLE speed2tag(
+    speed int REFERENCES speeds(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    tag int REFERENCES tags(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE settings(

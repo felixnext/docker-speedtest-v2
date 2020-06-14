@@ -29,6 +29,8 @@ services:
         environment:
             - POSTGRES_HOST: "speedtest-db"
             - POSTGRES_PORT: "5432"
+        ports:
+            - "7000:7000"
 
     speedtest-app:
         build: "./webapp"

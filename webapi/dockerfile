@@ -12,4 +12,4 @@ COPY . ./
 
 EXPOSE 7000
 
-CMD [ "npm", "start", "$POSTGRES_HOST", "$POSTGRES_PORT" ]
+CMD [ "npm", "start", "$POSTGRES_HOST", "$POSTGRES_PORT", "$POSTGRES_PASSWORD" ]

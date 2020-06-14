@@ -12,6 +12,16 @@ You can then run the docker compose script:
 docker-compose up
 ```
 
+## Code Structure
+
+The code is structured into 4 components, each of which are packaged into a docker container and then orchastrated through docker-compose.
+The compontents are:
+
+* database - Postgres Database that stores the relevant information
+* speedtest - Python scripts based on [speedtest-cli](https://github.com/sivel/speedtest-cli) that continously measures internet speeds and writes to database (along with meta information)
+* webapi - Exposes the data stored in the database through a REST interface (based on Node.js)
+* webapp - React App that leveraged the webapi to display and filter the information
+
 ## License
 
 The code is published under the Apache-2 License.

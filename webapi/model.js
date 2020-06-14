@@ -5,14 +5,14 @@ const Pool = require('pg').Pool
 const pool = new Pool({
   user: 'postgres',
   host: process.argv[2],
-  database: 'my_database',
-  password: 'pwd',
+  database: 'speedtest',
+  password: process.argv[4],
   port: process.argv[3],
 });
 
-const getMerchants = () => {
+const getSpeeds = () => {
   return new Promise(function(resolve, reject) {
-    pool.query('SELECT * FROM merchants ORDER BY id ASC', (error, results) => {
+    pool.query('SELECT * FROM speeds ORDER BY timestamp DESC', (error, results) => {
       if (error) {
         reject(error)
       }
@@ -44,7 +44,5 @@ const deleteMerchant = () => {
 }
 
 module.exports = {
-  getMerchants,
-  createMerchant,
-  deleteMerchant,
+  getSpeeds,
 }

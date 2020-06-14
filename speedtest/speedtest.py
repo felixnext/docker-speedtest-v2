@@ -103,7 +103,7 @@ class Tester():
 
         # create insert statement
         # TODO: add security checks that data is there?
-        cur.execute("INSERT INTO speeds (download, upload, ping, measure_time, isp, ip, country) VALUES ({}, {}, {}, '{}', '{}', '{}', '{}')".format(results["download"], results["upload"], results["ping"], results["timestamp"], results["client"]["isp"], results["client"]["ip"], results["client"]["country"]))
+        cur.execute("INSERT INTO speeds (download, upload, ping, measure_time, isp, ip, country) VALUES ({}, {}, {}, TO_TIMESTAMP('{}', 'YYYY-MM-DDTHH24:MI:SS.USZ'), '{}', '{}', '{}')".format(results["download"], results["upload"], results["ping"], results["timestamp"], results["client"]["isp"], results["client"]["ip"], results["client"]["country"]))
         conn.commit()
 
         cur.close()
