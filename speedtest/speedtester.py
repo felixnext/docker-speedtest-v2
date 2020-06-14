@@ -58,7 +58,7 @@ class Tester():
 
                 # map time and check difference until reached
                 last_check = time()
-                while (time() - last_check) < self.interval:
+                while (time() - last_check) < (self.interval * 60):
                     # check current flags
                     self.check_flags()
 
