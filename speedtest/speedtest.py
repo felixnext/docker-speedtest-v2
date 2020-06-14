@@ -8,10 +8,11 @@ from time import time, sleep
 import psycopg2 as psy
 
 class Tester():
-    def __init__(self, host, port="5432"):
+    def __init__(self, pwd, host, port="5432"):
         # connect to the database
         self.host = host
         self.port = port
+        self.pwd = pwd
         self.connect()
 
         # defines the time interval in which checks should be done
@@ -26,7 +27,7 @@ class Tester():
         self.conn = None
         while (self.conn != None):
             try:
-                self.conn = psy.connect(database="speedtest", user="postgres", password="pwd", host=self.host, port=self.port)
+                self.conn = psy.connect(database="speedtest", user="postgres", password=self.pwd, host=self.host, port=self.port)
             except:
                 print("WARNING: Unable to database, retry in 30 seconds")
                 sleep(30)
