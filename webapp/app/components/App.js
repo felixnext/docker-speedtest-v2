@@ -1,15 +1,16 @@
-import React, { Component, Fragment } from 'react';
+import React, {useState, useEffect, Fragment} from "react";
 
-class App extends Component {
-  render() {
-    return (
-      <Fragment>
-        <p>This is an incredibly complex react app!</p>
-      </Fragment>
-    );
-  }
+import styles from "../css/app.less";
+import ApiHandler from "./endpoint";
+
+export default function App() {
+  // create the relevant endpoint
+  const [api, setApi] = useState(new ApiHandler());
+
+  return ( 
+    <Fragment>
+      <p>WELCOME TO THE SPEEDTESTER!</p>
+    </Fragment>
+  );
 }
 
-export default App;
-
-// TODO: read environment

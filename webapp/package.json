@@ -10,15 +10,22 @@
   "author": "Felix Geilert",
   "license": "Apache-2.0",
   "dependencies": {
+    "bootstrap": "^4.5.0",
+    "moment": "^2.26.0",
+    "moment-timezone": "^0.5.31",
     "react": "^16.13.1",
+    "react-bootstrap": "^1.0.1",
     "react-dom": "^16.13.1",
-    "react-vis": "^1.11.7"
+    "react-vis": "^1.11.7",
+    "style-loader": "^1.2.1"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
     "babel-preset-react": "^6.24.1",
+    "css-loader": "^3.6.0",
     "html-webpack-plugin": "^4.3.0",
+    "less-loader": "^6.1.1",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.11.0"

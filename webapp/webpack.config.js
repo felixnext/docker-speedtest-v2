@@ -18,6 +18,28 @@ module.exports = {
         exclude: /(node_modules|bower_components)/,
         loader: 'babel-loader',
       },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
+      {
+        test: /\.less$/,
+        use: [
+          {
+            loader: "style-loader"
+          },
+          {
+            loader: "css-loader",
+            options: {
+              sourceMap: true,
+              modules: true,
+            }
+          },
+          {
+            loader: "less-loader"
+          }
+        ]
+      }
     ],
   },
   resolve: { extensions: ['*', '.js', '.jsx'] },
