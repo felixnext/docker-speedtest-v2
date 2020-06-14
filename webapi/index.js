@@ -55,6 +55,51 @@ app.get('/settings/flag', (req, res) => {
   })
 })
 
+app.get('/tags', (req, res) => {
+  data_model.getTags().then(response => {
+    res.status(200).send(response)
+  })
+  .catch(error => {
+    res.status(500).send(error)
+  })
+})
+
+app.get('/tags/delete/:id', (req, res) => {
+  data_model.removeTag(req.params.id).then(response => {
+    res.status(200).send(response)
+  })
+  .catch(error => {
+    res.status(500).send(error)
+  })
+})
+
+app.get('/tags/link/:tag/:speed', (req, res) => {
+  data_model.linkTag(req.params.tag, req.params.speed).then(response => {
+    res.status(200).send(response)
+  })
+  .catch(error => {
+    res.status(500).send(error)
+  })
+})
+
+app.get('/tags/unlink/:tag/:speed', (req, res) => {
+  data_model.removeTagLink(req.params.tag, req.params.speed).then(response => {
+    res.status(200).send(response)
+  })
+  .catch(error => {
+    res.status(500).send(error)
+  })
+})
+
+app.get('/tags/create/:name', (req, res) => {
+  data_model.addTag(req.params.name).then(response => {
+    res.status(200).send(response)
+  })
+  .catch(error => {
+    res.status(500).send(error)
+  })
+})
+
 // run the application
 app.listen(port, () => {
   console.log(`App running on port ${port}.`)
