@@ -112,7 +112,6 @@ class Tester():
         cur = self.conn.cursor()
 
         # create insert statement
-        # TODO: add security checks that data is there?
         cur.execute("INSERT INTO speeds (download, upload, ping, measure_time, isp, ip, country) VALUES (%s, %s, %s, %s, %s, %s, %s)", (results["download"], results["upload"], results["ping"], results["timestamp"], results["client"]["isp"], results["client"]["ip"], results["client"]["country"]))
         self.conn.commit()
 
@@ -142,7 +141,7 @@ class Tester():
         cur = self.conn.cursor()
         #cur.execute("INSERT INTO settings (item, value) VALUES ('{}', '{}') ON CONFLICT (item) SET value=excluded.value".format(key, value))
         cur.execute("UPDATE settings SET value=%s WHERE item=%s", (value, key))
-        conn.commit()
+        self.conn.commit()
         cur.close()
 
 def main(pwd, host, port):

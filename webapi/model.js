@@ -33,6 +33,50 @@ const getSpeedPage = (number) => {
   })
 }
 
+const getTags = () => {
+  return new Promise(function(resolve, reject) {
+    pool.query('SELECT * FROM tags', (error, results) => {
+      if (error) {
+        return reject(error)
+      }
+      resolve(results.rows);
+    })
+  }) 
+}
+
+const addTag = (tag) => {
+  return new Promise(function(resolve, reject) {
+    pool.query('INSERT INTO tags (tag) VALUES ($1)', [tag], (error, results) => {
+      if (error) {
+        reject(error)
+      }
+      resolve(`Tag Created`)
+    })
+  })
+}
+
+const linkTag = (tag_id, speed_id) => {
+  return new Promise(function(resolve, reject) {
+    pool.query('INSERT INTO speed2tag (speed, tag) VALUES ($1, $2)', [speed_id, tag_id], (error, results) => {
+      if (error) {
+        reject(error)
+      }
+      resolve(`Tag Linked`)
+    })
+  })
+}
+
+const removeTagLink = (tag_id, speed_id) => {
+  return new Promise(function(resolve, reject) {
+    pool.query('DELETE FROM speed2tag WHERE speed=$1 AND tag=$2', [speed_id, tag_id], (error, results) => {
+      if (error) {
+        reject(error)
+      }
+      resolve(`Tags deleted`)
+    })
+  })
+}
+
 const setInterval = (interval) => {
   return new Promise(function(resolve, reject) {
     pool.query('UPDATE settings SET value=$1 WHERE item=$2', [interval.toString(), "interval"], (error, results) => {
@@ -66,28 +110,6 @@ const getSettings = () => {
   }) 
 }
 
-const createMerchant = (body) => {
-  return new Promise(function(resolve, reject) {
-    const { name, email } = body
-    pool.query('INSERT INTO merchants (name, email) VALUES ($1, $2) RETURNING *', [name, email], (error, results) => {
-      if (error) {
-        reject(error)
-      }
-      resolve(`A new merchant has been added added: ${results.rows[0]}`)
-    })
-  })
-}
-const deleteMerchant = () => {
-  return new Promise(function(resolve, reject) {
-    const id = parseInt(request.params.id)
-    pool.query('DELETE FROM merchants WHERE id = $1', [id], (error, results) => {
-      if (error) {
-        reject(error)
-      }
-      resolve(`Merchant deleted with ID: ${id}`)
-    })
-  })
-}
 
 module.exports = {
   getAllSpeeds,
@@ -95,4 +117,8 @@ module.exports = {
   setInterval,
   setFlag,
   getSettings,
+  addTag,
+  getTags,
+  linkTag,
+  removeTagLink
 }
