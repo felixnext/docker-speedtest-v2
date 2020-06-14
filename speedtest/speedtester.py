@@ -140,7 +140,8 @@ class Tester():
 
     def update_flag(self, key, value):
         cur = self.conn.cursor()
-        cur.execute("INSERT INTO settings (item, value) VALUES ('{}', '{}') ON CONFLICT (item) SET value=excluded.value".format(key, value))
+        #cur.execute("INSERT INTO settings (item, value) VALUES ('{}', '{}') ON CONFLICT (item) SET value=excluded.value".format(key, value))
+        cur.execute("UPDATE settings SET value=%s WHERE item=%s", (value, key))
         conn.commit()
         cur.close()
 

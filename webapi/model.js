@@ -1,4 +1,5 @@
 const Pool = require('pg').Pool
+const pageSize = 100;
 
 // retrieve the variables
 
@@ -10,7 +11,7 @@ const pool = new Pool({
   port: process.argv[3],
 });
 
-const getSpeeds = () => {
+const getAllSpeeds = () => {
   return new Promise(function(resolve, reject) {
     pool.query('SELECT * FROM speeds ORDER BY measure_time DESC', (error, results) => {
       if (error) {
@@ -20,6 +21,51 @@ const getSpeeds = () => {
     })
   }) 
 }
+
+const getSpeedPage = (number) => {
+  return new Promise(function(resolve, reject) {
+    pool.query('SELECT * FROM speeds ORDER BY measure_time DESC OFFSET $1 LIMIT $2', [pageSize * number, pageSize], (error, results) => {
+      if (error) {
+        return reject(error)
+      }
+      resolve(results.rows);
+    })
+  })
+}
+
+const setInterval = (interval) => {
+  return new Promise(function(resolve, reject) {
+    pool.query('UPDATE settings SET value=$1 WHERE item=$2', [interval.toString(), "interval"], (error, results) => {
+      if (error) {
+        reject(error)
+      }
+      resolve(`Updated interval`)
+    })
+  })
+}
+
+const setFlag = (flag) => {
+  return new Promise(function(resolve, reject) {
+    pool.query('UPDATE settings SET value=$1 WHERE item=$2', [flag.toString(), "run_test"], (error, results) => {
+      if (error) {
+        reject(error)
+      }
+      resolve(`Updated flag`)
+    })
+  })
+}
+
+const getSettings = () => {
+  return new Promise(function(resolve, reject) {
+    pool.query('SELECT * FROM settings', (error, results) => {
+      if (error) {
+        return reject(error)
+      }
+      resolve(results.rows);
+    })
+  }) 
+}
+
 const createMerchant = (body) => {
   return new Promise(function(resolve, reject) {
     const { name, email } = body
@@ -44,5 +90,9 @@ const deleteMerchant = () => {
 }
 
 module.exports = {
-  getSpeeds,
+  getAllSpeeds,
+  getSpeedPage,
+  setInterval,
+  setFlag,
+  getSettings,
 }
