@@ -11,4 +11,4 @@ RUN pip3 install speedtest-cli fire psycopg2
 COPY ./speedtester.py ./
 
 # Create entry point
-CMD [ "sh" "-c", "python -u speedtester.py --pwd=\"$POSTGRES_PASSWORD\" --host=\"$POSTGRES_HOST\" --port=\"$POSTGRES_PORT\"" ]
+CMD [ "sh", "-c", "python -u speedtester.py --pwd=\"$POSTGRES_PASSWORD\" --host=\"$POSTGRES_HOST\" --port=\"$POSTGRES_PORT\"" ]
