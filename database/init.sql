@@ -1,5 +1,5 @@
 CREATE DATABASE speedtest;
-USE speedtest;
+\c speedtest;
 
 CREATE TABLE speeds(
     id SERIAL PRIMARY KEY NOT NULL,

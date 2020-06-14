@@ -21,13 +21,16 @@ class Tester():
 
         # update data
         self.check_flags()
+
+        self.run()
     
     def connect(self):
         '''Establishes connection to database.'''
         self.conn = None
-        while (self.conn != None):
+        while (self.conn == None):
             try:
                 self.conn = psy.connect(database="speedtest", user="postgres", password=self.pwd, host=self.host, port=self.port)
+                print("INFO: connection established")
             except:
                 print("WARNING: Unable to database, retry in 30 seconds")
                 sleep(30)
@@ -69,6 +72,7 @@ class Tester():
                     sleep(10)
             except KeyboardInterrupt:
                 print("Speedtest closed by user")
+                run = False
         
         # close the connection
         self.conn.close()
@@ -83,8 +87,9 @@ class Tester():
                 test.download()
                 test.upload()
                 results = test.results.dict()
-            except:
-                print("WARNING: Speedtest failed")
+            except Exception as e:
+                print("WARNING: Speedtest failed ({})".format(e))
+                sleep(1)
         
         # convert to Mbits
         for v in ["download", "upload"]:
@@ -105,7 +110,7 @@ class Tester():
         # create insert statement
         # TODO: add security checks that data is there?
         cur.execute("INSERT INTO speeds (download, upload, ping, measure_time, isp, ip, country) VALUES ({}, {}, {}, TO_TIMESTAMP('{}', 'YYYY-MM-DDTHH24:MI:SS.USZ'), '{}', '{}', '{}')".format(results["download"], results["upload"], results["ping"], results["timestamp"], results["client"]["isp"], results["client"]["ip"], results["client"]["country"]))
-        conn.commit()
+        self.conn.commit()
 
         cur.close()
     
@@ -135,8 +140,8 @@ class Tester():
         conn.commit()
         cur.close()
 
-def main(host, port):
-    tester = Tester(host, port)
+def main(pwd, host, port):
+    tester = Tester(pwd, host, port)
 
 if __name__ == "__main__":
     fire.Fire(main)

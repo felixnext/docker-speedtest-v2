@@ -12,9 +12,9 @@ const pool = new Pool({
 
 const getSpeeds = () => {
   return new Promise(function(resolve, reject) {
-    pool.query('SELECT * FROM speeds ORDER BY timestamp DESC', (error, results) => {
+    pool.query('SELECT * FROM speeds ORDER BY measure_time DESC', (error, results) => {
       if (error) {
-        reject(error)
+        return reject(error)
       }
       resolve(results.rows);
     })

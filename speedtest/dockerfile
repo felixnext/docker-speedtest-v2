@@ -8,7 +8,7 @@ RUN apk update && \
 
 RUN pip3 install speedtest-cli fire psycopg2
 
-COPY ./speedtest.py ./
+COPY ./speedtester.py ./
 
 # Create entry point
-CMD ["python3", "speedtest.py", "--host=$POSTGRES_HOST", "--port=$POSTGRES_PORT", "--pwd=$POSTGRES_PASSWORD" ]
+CMD ["python3", "speedtester.py", "--host=$POSTGRES_HOST", "--port=$POSTGRES_PORT", "--pwd=$POSTGRES_PASSWORD" ]

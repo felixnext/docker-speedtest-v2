@@ -7,6 +7,8 @@ services:
             - /data/speedtest:/var/lib/postgresql/data
         env_file:
             - ./db.env
+        ports:
+            - "5432:5432"
 
     speedtest:
         build: "./speedtest"
@@ -16,8 +18,8 @@ services:
         env_file:
             - ./db.env
         environment:
-            - POSTGRES_HOST: "speedtest-db"
-            - POSTGRES_PORT: "5432"
+            POSTGRES_HOST: "speedtest-db"
+            POSTGRES_PORT: "5432"
     
     speedtest-api:
         build: "./webapi"
@@ -27,8 +29,8 @@ services:
         env_file:
             - ./db.env
         environment:
-            - POSTGRES_HOST: "speedtest-db"
-            - POSTGRES_PORT: "5432"
+            POSTGRES_HOST: "speedtest-db"
+            POSTGRES_PORT: "5432"
         ports:
             - "7000:7000"
 
@@ -36,9 +38,9 @@ services:
         build: "./webapp"
         restart: always
         ports: 
-            - "8000:80"
+            - "80:80"
         depends_on: 
             - speedtest-api
         environment:
-            - API_HOST: "speedtest-api"
-            - API_PORT: 7000
+            API_HOST: "speedtest-api"
+            API_PORT: 7000
