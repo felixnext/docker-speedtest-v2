@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const port = 7000
 
+
 const data_model = require('./model')
 const { response } = require('express')
 
@@ -10,8 +11,21 @@ app.get('/', (req, res) => {
   res.status(200).send('SpeedTester API');
 })
 
+// DEBUG: enable cors
+var cors = require('cors')
+app.use(cors())
+
 app.get('/speed', (req, res) => {
   data_model.getAllSpeeds().then(response => {
+    res.status(200).send(response);
+  })
+  .catch(error => {
+    res.status(500).send(error);
+  })
+})
+
+app.get('/speed/count', (req, res) => {
+  data_model.getSpeedPageCount().then(response => {
     res.status(200).send(response);
   })
   .catch(error => {

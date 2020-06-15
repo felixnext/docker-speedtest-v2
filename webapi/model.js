@@ -22,6 +22,17 @@ const getAllSpeeds = () => {
   }) 
 }
 
+const getSpeedPageCount = () => {
+  return new Promise(function(resolve, reject) {
+    pool.query('SELECT COUNT(*) as count FROM speeds', (error, result) => {
+      if (error) {
+        return reject(error)
+      }
+      resolve({ "items": result.rows[0]["count"], "pages": Math.ceil(parseInt(result.rows[0]["count"]) / pageSize)});
+    })
+  })
+}
+
 const getSpeedPage = (number) => {
   return new Promise(function(resolve, reject) {
     pool.query('SELECT s.id, MAX(s.download) as download, MAX(s.upload) as upload, MAX(s.ping) as ping, s.measure_time, MAX(s.ip) as ip, MAX(s.country) as country, MAX(s.isp) as isp, MAX(s.description) as description, array_agg(t.tag) AS tags FROM speeds AS s LEFT JOIN speed2tag as st ON s.id=st.speed LEFT JOIN tags AS t ON st.tag = t.id GROUP BY s.id, s.measure_time ORDER BY s.measure_time DESC OFFSET $1 LIMIT $2', [pageSize * number, pageSize], (error, results) => {
@@ -125,6 +136,7 @@ const getSettings = () => {
 module.exports = {
   getAllSpeeds,
   getSpeedPage,
+  getSpeedPageCount,
   setInterval,
   setFlag,
   getSettings,
