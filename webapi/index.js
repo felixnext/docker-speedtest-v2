@@ -24,6 +24,24 @@ app.get('/speed', (req, res) => {
   })
 })
 
+app.get('/speed/new/:date', (req, res) => {
+  data_model.getNewSpeeds(req.params.date).then(response => {
+    res.status(200).send(response);
+  })
+  .catch(error => {
+    res.status(500).send(error);
+  })
+})
+
+app.get('/speed/id/:id', (req, res) => {
+  data_model.getSpeed(req.params.id).then(response => {
+    res.status(200).send(response);
+  })
+  .catch(error => {
+    res.status(500).send(error);
+  })
+})
+
 app.get('/speed/count', (req, res) => {
   data_model.getSpeedPageCount().then(response => {
     res.status(200).send(response);

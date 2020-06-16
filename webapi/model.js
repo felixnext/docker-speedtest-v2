@@ -1,5 +1,7 @@
 const Pool = require('pg').Pool
 const pageSize = 100;
+const speedQuery = 'SELECT s.id, MAX(s.download) as download, MAX(s.upload) as upload, MAX(s.ping) as ping, s.measure_time, MAX(s.ip) as ip, MAX(s.country) as country, MAX(s.isp) as isp, MAX(s.description) as description, array_agg(t.tag) AS tags FROM speeds AS s LEFT JOIN speed2tag as st ON s.id=st.speed LEFT JOIN tags AS t ON st.tag = t.id'
+const moment = require('moment');
 
 // retrieve the variables
 
@@ -13,11 +15,34 @@ const pool = new Pool({
 
 const getAllSpeeds = () => {
   return new Promise(function(resolve, reject) {
-    pool.query('SELECT s.id, MAX(s.download) as download, MAX(s.upload) as upload, MAX(s.ping) as ping, s.measure_time, MAX(s.ip) as ip, MAX(s.country) as country, MAX(s.isp) as isp, MAX(s.description) as description, array_agg(t.tag) AS tags FROM speeds AS s LEFT JOIN speed2tag as st ON s.id=st.speed LEFT JOIN tags AS t ON st.tag = t.id GROUP BY s.id, s.measure_time ORDER BY s.measure_time DESC LIMIT 1000', (error, results) => {
+    pool.query(speedQuery + ' GROUP BY s.id, s.measure_time ORDER BY s.measure_time DESC LIMIT 1000', (error, results) => {
       if (error) {
         return reject(error)
       }
       resolve(results.rows);
+    })
+  }) 
+}
+
+const getNewSpeeds = (time) => {
+  let date = moment.unix(parseInt(time) / 1000).toDate();
+  return new Promise(function(resolve, reject) {
+    pool.query(speedQuery + ' WHERE s.measure_time>$1 GROUP BY s.id, s.measure_time ORDER BY s.measure_time DESC LIMIT 1000', [date,], (error, results) => {
+      if (error) {
+        return reject({err: error, date: date})
+      }
+      resolve(results.rows);
+    })
+  }) 
+}
+
+const getSpeed = (id) => {
+  return new Promise(function(resolve, reject) {
+    pool.query(speedQuery + ' WHERE s.id=$1 GROUP BY s.id, s.measure_time ORDER BY s.measure_time DESC LIMIT 1000', [id,], (error, results) => {
+      if (error) {
+        return reject(error)
+      }
+      resolve(results.rows[0]);
     })
   }) 
 }
@@ -35,7 +60,7 @@ const getSpeedPageCount = () => {
 
 const getSpeedPage = (number) => {
   return new Promise(function(resolve, reject) {
-    pool.query('SELECT s.id, MAX(s.download) as download, MAX(s.upload) as upload, MAX(s.ping) as ping, s.measure_time, MAX(s.ip) as ip, MAX(s.country) as country, MAX(s.isp) as isp, MAX(s.description) as description, array_agg(t.tag) AS tags FROM speeds AS s LEFT JOIN speed2tag as st ON s.id=st.speed LEFT JOIN tags AS t ON st.tag = t.id GROUP BY s.id, s.measure_time ORDER BY s.measure_time DESC OFFSET $1 LIMIT $2', [pageSize * number, pageSize], (error, results) => {
+    pool.query(speedQuery + ' GROUP BY s.id, s.measure_time ORDER BY s.measure_time DESC OFFSET $1 LIMIT $2', [pageSize * number, pageSize], (error, results) => {
       if (error) {
         return reject(error)
       }
@@ -137,6 +162,8 @@ module.exports = {
   getAllSpeeds,
   getSpeedPage,
   getSpeedPageCount,
+  getSpeed,
+  getNewSpeeds,
   setInterval,
   setFlag,
   getSettings,
