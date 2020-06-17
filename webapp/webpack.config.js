@@ -8,8 +8,6 @@ var HTMLWebpackPluginConfig = new HTMLWebpackPlugin({
   inject: 'body'
 })
 
-var EnvPluginConfig = new webpack.EnvironmentPlugin(['API_HOST', 'API_PORT']);
-
 module.exports = {
   entry: __dirname + '/app/index.js',
   mode: 'development',
@@ -50,7 +48,6 @@ module.exports = {
     path: __dirname + "/build"
   },
   plugins: [
-    HTMLWebpackPluginConfig,
-    EnvPluginConfig
+    HTMLWebpackPluginConfig
   ],
 };

@@ -1,10 +1,11 @@
 const moment = require('moment-timezone');
+const conf = require('../config');
 
 export default class ApiHandler {
     constructor() {
         // retrieve the api location
-        this.host = process.env.API_HOST || "localhost";
-        this.port = process.env.API_PORT || 7000;
+        this.host = conf.API_HOST || "localhost";
+        this.port = conf.API_PORT || 7000;
 
         console.log("API AT LOCATION: " + this.host + ":" + this.port);
     }
