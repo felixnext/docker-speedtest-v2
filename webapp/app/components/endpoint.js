@@ -1,3 +1,4 @@
+const moment = require('moment-timezone');
 
 export default class ApiHandler {
     constructor() {
@@ -39,7 +40,12 @@ export default class ApiHandler {
     }
 
     updateSpeedData(data) {
-        // TODO: update datetimes to timezone
+        // clean data (adjust timezones)
+        return data.map( item => {
+            item["measure_time"] = moment(item["measure_time"]).local()
+            item["tags"] = item["tags"].filter(item => item != null)
+            return item;
+        })
     }
 
     //! Retrieves the current settings
@@ -79,10 +85,21 @@ export default class ApiHandler {
     getSpeeds() {
         return this.getContentData("/speed/count")
             .then(data => {
-                return new Promise( (resolve, reject) => {
-                   // TODO: chain results from all pages (promise array)
-                })
-            })
+                return Promise.all([...Array(data.pages).reverse().keys()].map( (idx) => {
+                    return this.getContentData("/speed/pages/" + idx).then(data => {
+                        return this.updateSpeedData(data);
+                    })
+                })).then((values) => {
+                    // check how to combine the array
+                    if (values.length == 0) {
+                        return [];
+                    }
+                    if (values.length == 1) {
+                        return values[0];
+                    }
+                    return values[0].concat(...values.slice(1));
+                });
+            });
     }
 
     //! Filters and returns only speeds new up to the given date
@@ -108,7 +125,7 @@ export default class ApiHandler {
     createTag(name) {
         return this.getContentData("/tags/create/" + name)
             .then(data => {
-                // TODO: parse the id
+                return data.id;
             })
     }
 

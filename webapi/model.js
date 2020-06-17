@@ -82,11 +82,11 @@ const getTags = () => {
 
 const addTag = (tag) => {
   return new Promise(function(resolve, reject) {
-    pool.query('INSERT INTO tags (tag) VALUES ($1)', [tag], (error, results) => {
+    pool.query('INSERT INTO tags (tag) VALUES ($1) RETURNING id', [tag], (error, results) => {
       if (error) {
         reject(error)
       }
-      resolve(`Tag Created`)
+      resolve({id: results.rows[0].id})
     })
   })
 }
