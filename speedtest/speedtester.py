@@ -96,7 +96,8 @@ class Tester():
         for v in ["download", "upload"]:
             results[v] = results[v] / (1024 * 1024)
         
-        # parse timestamp (+ adjust timezone)
+        # parse timestamp (+ adjust timezone) 
+        # FEAT: (note: Make sure this is UTC?)
         results["timestamp"] = parser.parse(results["timestamp"]).astimezone(tz=None)
         
         # print

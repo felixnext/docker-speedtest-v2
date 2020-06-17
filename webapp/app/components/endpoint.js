@@ -42,7 +42,7 @@ export default class ApiHandler {
     updateSpeedData(data) {
         // clean data (adjust timezones)
         return data.map( item => {
-            item["measure_time"] = moment(item["measure_time"]).local()
+            item["measure_time"] = moment.utc(item["measure_time"]).local()
             item["tags"] = item["tags"].filter(item => item != null)
             return item;
         })

@@ -1,7 +1,14 @@
+const pg = require('pg');
 const Pool = require('pg').Pool
 const pageSize = 100;
 const speedQuery = 'SELECT s.id, MAX(s.download) as download, MAX(s.upload) as upload, MAX(s.ping) as ping, s.measure_time, MAX(s.ip) as ip, MAX(s.country) as country, MAX(s.isp) as isp, MAX(s.description) as description, array_agg(t.tag) AS tags FROM speeds AS s LEFT JOIN speed2tag as st ON s.id=st.speed LEFT JOIN tags AS t ON st.tag = t.id'
 const moment = require('moment');
+
+// ensure correct timezone parsing?
+var types = pg.types;
+types.setTypeParser(1114, function(stringValue) {
+return stringValue;
+});
 
 // retrieve the variables
 
