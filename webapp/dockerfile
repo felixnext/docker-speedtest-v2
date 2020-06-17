@@ -12,10 +12,6 @@ RUN npm install react-scripts@3.4.1 -g --silent
 # add app
 COPY . ./
 
-RUN touch app/config.js
-RUN echo "export const API_HOST = '$API_HOST';"
-RUN echo "export const API_PORT = '$API_PORT';"
-
 RUN npm run build
 
 # production environment

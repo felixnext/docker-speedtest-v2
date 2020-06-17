@@ -19,8 +19,6 @@ export default function App() {
     api.getSpeeds().then(data => setSpeeds(data))
   }, [])
 
-  console.log("rendered");
-
   return ( 
     <Fragment>
       <p>WELCOME TO THE SPEEDTESTER!</p>

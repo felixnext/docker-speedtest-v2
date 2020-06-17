@@ -5,12 +5,15 @@ New version of the docker speedtest tool. The components are more decoupled and 
 ## Getting Started
 
 First create an environment file (`db.env`) that contains the line `POSTGRES_PASSWORD=<YOUR PASSWORD HERE>`.
+Next you will need to adjust the `API_HOST` variable with the IP address of the machine you want to run the system on in the `webapp/app/config.js` file.
 
 You can then run the docker compose script:
 
 ```bash
-docker-compose up
+docker-compose up -d
 ```
+
+This will automatically build and deploy the containers.
 
 ## Code Structure
 
