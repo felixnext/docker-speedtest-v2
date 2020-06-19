@@ -8,6 +8,9 @@ New version of the docker speedtest tool. The components are more decoupled and 
 * Invoke scan manually
 * Component based approach to ensure more fail safty + Leverage Docker-Compose
 
+**Screenshot:**
+![Screenshot](screen.jpg)
+
 ## Getting Started
 
 First create an environment file (`db.env`) that contains the line `POSTGRES_PASSWORD=<YOUR PASSWORD HERE>`.
