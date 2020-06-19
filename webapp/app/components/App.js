@@ -1,7 +1,10 @@
 import React, {useState, useEffect} from "react";
 import {Button, Container, Row, Col, Jumbotron, Spinner} from 'react-bootstrap';
-import {FlexibleWidthXYPlot, LineMarkSeries, HorizontalGridLines, VerticalGridLines, XAxis, YAxis, Crosshair} from 'react-vis';
+//import {FlexibleWidthXYPlot, LineMarkSeries, HorizontalGridLines, VerticalGridLines, XAxis, YAxis, Crosshair} from 'react-vis';
+import {Chart} from 'react-charts';
 const moment = require('moment-timezone');
+import Slider, { Range } from 'rc-slider';
+import 'rc-slider/assets/index.css';
 
 import styles from "../css/app.less";
 import '../../node_modules/react-vis/dist/style.css';
@@ -17,6 +20,7 @@ export default function App() {
   const [speeds, setSpeeds] = useState([]);
   const [tags, setTags] = useState([]);
   const [lastDate, setLastDate] = useState(null);
+  const [interval, setInterval] = useState(0);
 
   // --- LOGIC ---
   // load all data initially
@@ -40,7 +44,10 @@ export default function App() {
   }
 
   const loadInit = () => {
-    api.getSettings().then(data => setSettings(data))
+    api.getSettings().then(data => {
+      setInterval(data["interval"] || 0)
+      setSettings(data)
+    })
     api.getTags().then(data => setTags(data))
     api.getSpeeds().then(data => {
       setSpeeds(data)
@@ -70,25 +77,42 @@ export default function App() {
     })
   }
 
+  const updateInterval = (value) => {
+    api.setInterval(value).then(success =>{
+      api.getSettings().then(data => setSettings(data))
+    })
+  }
+
+  const updateGraphScope = (numbers) => {
+    let start = numbers[0]
+    let end = numbers[1]
+  }
+
   // --- RENDER ---
   const createGraph = () => {
     // TODO: limit data
-    let dl = speeds.map(data => { return {x: data.measure_time, y: data.download}; })
-    let ul = speeds.map(data => { return {x: data.measure_time, y: data.upload}; })
-    let pn = speeds.map(data => { return {x: data.measure_time, y: data.ping}; })
+    let data = [
+      {
+        label: "Download (MB/s)",
+        data: speeds.map(data => { return {x: data.measure_time.toDate(), y: data.download}; })
+      },
+      {
+        label: "Upload (MB/s)",
+        data: speeds.map(data => { return {x: data.measure_time.toDate(), y: data.upload}; })
+      },
+      {
+        label: "Ping (ms)",
+        data: speeds.map(data => { return {x: data.measure_time.toDate(), y: data.ping}; })
+      }
+    ]
+    let axes = [
+      { primary: true, type: 'time', position: 'bottom' },
+      { type: 'linear', position: 'left' }
+    ]
     return (
-      <FlexibleWidthXYPlot height={500} xType="time">
-        <HorizontalGridLines />
-        <VerticalGridLines />
-        <LineMarkSeries data={dl} color="green" size={2} />
-        <LineMarkSeries data={ul} color="yellow" size={2} />
-        <LineMarkSeries data={pn} color="red" size={2} />
-        <XAxis tickFormat={function tickFormat(d){
-          var date = moment(d);
-          return date.format("MM/dd/YY hh:mm");
-        }} />
-        <YAxis />
-      </FlexibleWidthXYPlot>
+      <div style={{height: "400px", width: "100%"}}>
+        <Chart data={data} axes={axes} tooltip primaryCursor secondaryCursor />
+      </div>
     );
     // <Crosshair values={this.state.crosshairValues} className={'data-legend'} />
   }
@@ -104,6 +128,8 @@ export default function App() {
       return (<Button variant="outline-warning" onClick={runScan}>Scan Now</Button>)
     }
   }
+  
+  // TODO: select time zones to limit to last 20
 
   return ( 
     <Container>
@@ -115,38 +141,26 @@ export default function App() {
       </Jumbotron>
       <Container>
         <Row>
-          Slider here
+          <span>Select Time:</span>
+          <Range allowCross={false} defaultValue={[0, 20]} onAfterChange={updateGraphScope} />
         </Row>
         <Row>
           {createGraph()}
         </Row>
         <Row>
-          <Col sm>
-            Slider here
+          <Col sm={8}>
+            <span>Update Interval: </span>
+            <Slider onChange={(value) => setInterval(value)} min={1} max={120} defaultValue={settings["interval"] || 30} onAfterChange={updateInterval}/>
+            <span> Every {interval} minutes</span>
           </Col>
-          <Col style={{textAlign: "right"}}sm={{span: 4, offset: 4}}>
+          <Col style={{textAlign: "right"}} sm={{span: 4}}>
             {scanButton()}
           </Col>
         </Row>
       </Container>
-      <div>{Object.keys(settings).map( (key, index) => {
-        return (<div key={index}>
-          <span>{key}</span>
-          <span> - </span>
-          <span>{settings[key]}</span>
-         </div>)
-      })}</div>
-      <div>{speeds.map( (key, index) => {
-        return (<div key={index}>
-          <span>{key.id}</span>
-          <span> - </span>
-          <span>{key.download}</span>
-          <span> - </span>
-          <span>{key.measure_time.toString()}</span>
-          <span> - </span>
-          <span>{key.tags}</span>
-         </div>)
-      })}</div>
+      <Container>
+        STATS HERE
+      </Container>
     </Container>
   );
 }
