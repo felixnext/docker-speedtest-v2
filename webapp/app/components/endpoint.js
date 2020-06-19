@@ -7,7 +7,7 @@ export default class ApiHandler {
         this.host = conf.API_HOST || "localhost";
         this.port = conf.API_PORT || 7000;
 
-        console.log("API AT LOCATION: " + this.host + ":" + this.port);
+        //console.log("API AT LOCATION: " + this.host + ":" + this.port);
     }
 
     _getData(url = '') {
@@ -105,7 +105,7 @@ export default class ApiHandler {
 
     //! Filters and returns only speeds new up to the given date
     getNewSpeeds(date) {
-        return this.getContentData("/speed/new/" + (date.tz("UTC").valueOf() + 100))
+        return this.getContentData("/speed/new/" + (date.clone().tz("UTC").valueOf() + 100))
             .then(data => {
                 return this.updateSpeedData(data);
             })

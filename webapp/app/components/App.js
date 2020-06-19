@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
-import {Button, Container, Row, Jumbotron} from 'react-bootstrap';
-import {XYPlot, LineSeries, HorizontalGridLines, VerticalGridLines, XAxis, YAxis} from 'react-vis';
+import {Button, Container, Row, Col, Jumbotron, Spinner} from 'react-bootstrap';
+import {FlexibleWidthXYPlot, LineMarkSeries, HorizontalGridLines, VerticalGridLines, XAxis, YAxis, Crosshair} from 'react-vis';
 const moment = require('moment-timezone');
 
 import styles from "../css/app.less";
@@ -25,7 +25,6 @@ export default function App() {
       api.getSettings().then(data => setSettings(data))
       api.getTags().then(data => setTags(data));
       api.getNewSpeeds(lastDate).then(data => {
-        console.log(data)
         setSpeeds(data.concat(speeds))
         if (data.length > 0) {
           setLastDate(data[0].measure_time)
@@ -63,26 +62,47 @@ export default function App() {
     }
   }, [api, lastDate])
 
-  // timed effect to refresh
-  useEffect(() => {
-    //
-  })
+  // --- ACTIONS ---
+
+  const runScan = () => {
+    api.setFlag().then(success => {
+      api.getSettings().then(data => setSettings(data))
+    })
+  }
 
   // --- RENDER ---
   const createGraph = () => {
+    // TODO: limit data
     let dl = speeds.map(data => { return {x: data.measure_time, y: data.download}; })
+    let ul = speeds.map(data => { return {x: data.measure_time, y: data.upload}; })
+    let pn = speeds.map(data => { return {x: data.measure_time, y: data.ping}; })
     return (
-      <XYPlot height={500} width={1000} xType="time">
+      <FlexibleWidthXYPlot height={500} xType="time">
         <HorizontalGridLines />
         <VerticalGridLines />
-        <LineSeries data={dl} />
+        <LineMarkSeries data={dl} color="green" size={2} />
+        <LineMarkSeries data={ul} color="yellow" size={2} />
+        <LineMarkSeries data={pn} color="red" size={2} />
         <XAxis tickFormat={function tickFormat(d){
           var date = moment(d);
           return date.format("MM/dd/YY hh:mm");
         }} />
         <YAxis />
-      </XYPlot>
+      </FlexibleWidthXYPlot>
     );
+    // <Crosshair values={this.state.crosshairValues} className={'data-legend'} />
+  }
+
+  const scanButton = () => {
+    if ((settings["run_test"] || "false").toLowerCase() == 'true') {
+      return (<Button variant="warning" disabled>
+        <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+        <span> Scanning ...</span>
+      </Button>)
+    }
+    else {
+      return (<Button variant="outline-warning" onClick={runScan}>Scan Now</Button>)
+    }
   }
 
   return ( 
@@ -94,7 +114,20 @@ export default function App() {
         </p>
       </Jumbotron>
       <Container>
-        {createGraph()}
+        <Row>
+          Slider here
+        </Row>
+        <Row>
+          {createGraph()}
+        </Row>
+        <Row>
+          <Col sm>
+            Slider here
+          </Col>
+          <Col style={{textAlign: "right"}}sm={{span: 4, offset: 4}}>
+            {scanButton()}
+          </Col>
+        </Row>
       </Container>
       <div>{Object.keys(settings).map( (key, index) => {
         return (<div key={index}>
