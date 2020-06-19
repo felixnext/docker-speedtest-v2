@@ -1,6 +1,5 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, Fragment} from "react";
 import {Button, Container, Row, Col, Jumbotron, Spinner} from 'react-bootstrap';
-//import {FlexibleWidthXYPlot, LineMarkSeries, HorizontalGridLines, VerticalGridLines, XAxis, YAxis, Crosshair} from 'react-vis';
 import {Chart} from 'react-charts';
 const moment = require('moment-timezone');
 import Slider, { Range } from 'rc-slider';
@@ -15,12 +14,13 @@ import ApiHandler from "./endpoint";
 export default function App() {
   // --- STATES ---
   // create the relevant endpoint
-  const [api, setApi] = useState(new ApiHandler());
-  const [settings, setSettings] = useState({});
-  const [speeds, setSpeeds] = useState([]);
-  const [tags, setTags] = useState([]);
-  const [lastDate, setLastDate] = useState(null);
-  const [interval, setInterval] = useState(0);
+  const [api, setApi] = useState(new ApiHandler()); // defines API access
+  const [settings, setSettings] = useState({});     // stores the settings
+  const [speeds, setSpeeds] = useState([]);         // stores all speed measurements
+  const [tags, setTags] = useState([]);             // stores all tags
+  const [lastDate, setLastDate] = useState(null);   // stores the last data that is used for sync
+  const [interval, setInterval] = useState(0);      // helper for the interval UI element
+  const [timeFilter, setTimeFilter] = useState(null); // defines the time filter for the graph
 
   // --- LOGIC ---
   // load all data initially
@@ -29,7 +29,14 @@ export default function App() {
       api.getSettings().then(data => setSettings(data))
       api.getTags().then(data => setTags(data));
       api.getNewSpeeds(lastDate).then(data => {
-        setSpeeds(data.concat(speeds))
+        let updateFilter = timeFilter[1] == speeds[0].measure_time;
+
+        setSpeeds(data.concat(speeds)).then( x => {
+          if (updateFilter == true && speeds.length > 0) {
+            setTimeFilter([timeFilter[0], speeds[0].measure_time])
+          }
+        })
+
         if (data.length > 0) {
           setLastDate(data[0].measure_time)
         }
@@ -53,6 +60,7 @@ export default function App() {
       setSpeeds(data)
       if (data.length > 0) {
         setLastDate(data[0].measure_time)
+        setTimeFilter([data[data.length > 20 ? 20 : data.length - 1].measure_time, data[0].measure_time])
       }
       else {
         return refreshData()
@@ -86,23 +94,35 @@ export default function App() {
   const updateGraphScope = (numbers) => {
     let start = numbers[0]
     let end = numbers[1]
+    setTimeFilter([moment.utc(start).local(), moment.utc(end).local()])
+  }
+
+  const filterData = () => {
+    let filterSpeed = speeds;
+
+    // filter data
+    if (timeFilter != null) {
+      filterSpeed = filterSpeed.filter(item => item.measure_time >= timeFilter[0] && item.measure_time <= timeFilter[1]);
+    }
+
+    return filterSpeed;
   }
 
   // --- RENDER ---
-  const createGraph = () => {
-    // TODO: limit data
+  const createGraph = (filterSpeed) => {
+    // generate data
     let data = [
       {
         label: "Download (MB/s)",
-        data: speeds.map(data => { return {x: data.measure_time.toDate(), y: data.download}; })
+        data: filterSpeed.map(data => { return {x: data.measure_time.toDate(), y: data.download}; })
       },
       {
         label: "Upload (MB/s)",
-        data: speeds.map(data => { return {x: data.measure_time.toDate(), y: data.upload}; })
+        data: filterSpeed.map(data => { return {x: data.measure_time.toDate(), y: data.upload}; })
       },
       {
         label: "Ping (ms)",
-        data: speeds.map(data => { return {x: data.measure_time.toDate(), y: data.ping}; })
+        data: filterSpeed.map(data => { return {x: data.measure_time.toDate(), y: data.ping}; })
       }
     ]
     let axes = [
@@ -128,8 +148,27 @@ export default function App() {
       return (<Button variant="outline-warning" onClick={runScan}>Scan Now</Button>)
     }
   }
+
+  const renderFilterTime = () => {
+    if (timeFilter != null) {
+      return (<Fragment>
+        <Col xs={4}>
+          <span>{timeFilter[0].format("MM/DD/YY hh:mm")}</span>
+          <span> to </span>
+          <span>{timeFilter[1].format("MM/DD/YY hh:mm")}</span>
+        </Col>
+      </Fragment>);
+    }
+    return (null);
+  }
   
-  // TODO: select time zones to limit to last 20
+  let minTime = 0;
+  let maxTime = moment().valueOf();
+  if (speeds.length > 0) {
+    minTime = speeds[speeds.length - 1].measure_time.valueOf();
+    maxTime = speeds[0].measure_time.valueOf();
+  }
+  let filterSpeeds = filterData();
 
   return ( 
     <Container>
@@ -141,15 +180,20 @@ export default function App() {
       </Jumbotron>
       <Container>
         <Row>
-          <span>Select Time:</span>
-          <Range allowCross={false} defaultValue={[0, 20]} onAfterChange={updateGraphScope} />
+          <Col xs={6}>
+            <h4>Selected Time:</h4>
+          </Col>
+          {renderFilterTime()}
         </Row>
         <Row>
-          {createGraph()}
+          <Range allowCross={false} value={timeFilter != null ? [timeFilter[0].valueOf(), timeFilter[1].valueOf()] : []} onChange={updateGraphScope} min={minTime} max={maxTime} />
+        </Row>
+        <Row>
+          {createGraph(filterSpeeds)}
         </Row>
         <Row>
           <Col sm={8}>
-            <span>Update Interval: </span>
+            <h6>Update Interval: </h6>
             <Slider onChange={(value) => setInterval(value)} min={1} max={120} defaultValue={settings["interval"] || 30} onAfterChange={updateInterval}/>
             <span> Every {interval} minutes</span>
           </Col>
@@ -158,8 +202,18 @@ export default function App() {
           </Col>
         </Row>
       </Container>
-      <Container>
-        STATS HERE
+      <Container style={{marginTop: "40px"}}>
+        <Row>
+          <Col xs={6} md={4} style={{textAlign: "center"}}>
+            <h5>Avg Download: {(filterSpeeds.reduce((acc, val) => acc + val.download, 0) / filterSpeeds.length).toFixed(2)} MB/s</h5>
+          </Col>
+          <Col xs={6} md={4} style={{textAlign: "center"}}>
+            <h5>Avg Upload: {(filterSpeeds.reduce((acc, val) => acc + val.upload, 0) / filterSpeeds.length).toFixed(2)} MB/s</h5>
+          </Col>
+          <Col xs={6} md={4} style={{textAlign: "center"}}>
+            <h5>Avg Ping: {(filterSpeeds.reduce((acc, val) => acc + val.ping, 0) / filterSpeeds.length).toFixed(2)} ms</h5>
+          </Col>
+        </Row>
       </Container>
     </Container>
   );
