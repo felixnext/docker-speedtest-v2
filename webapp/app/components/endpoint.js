@@ -105,7 +105,7 @@ export default class ApiHandler {
 
     //! Filters and returns only speeds new up to the given date
     getNewSpeeds(date) {
-        return this.getContentData("/speed/new/" + date.getTime())
+        return this.getContentData("/speed/new/" + (date.tz("UTC").valueOf() + 100))
             .then(data => {
                 return this.updateSpeedData(data);
             })
