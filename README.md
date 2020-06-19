@@ -31,6 +31,13 @@ The compontents are:
 * webapi - Exposes the data stored in the database through a REST interface (based on Node.js)
 * webapp - React App that leveraged the webapi to display and filter the information
 
+## ToDo List
+
+* [ ] Fix Chart Display (Date-Time Display + Axes labels)
+* [ ] Integrate Tags into Frontend (Filter by Tags and allow tagging of single datapoints)
+* [ ] Update Stylesheet (better formating on page)
+* [ ] Add additional information (ISP & Country) into the display
+
 ## License
 
 The code is published under the Apache-2 License.
