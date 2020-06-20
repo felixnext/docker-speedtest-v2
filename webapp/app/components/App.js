@@ -1,6 +1,6 @@
 import React, {useState, useEffect, Fragment} from "react";
 import {Button, Container, Row, Col, Jumbotron, Spinner} from 'react-bootstrap';
-import {Chart} from 'react-charts';
+import {FlexibleWidthXYPlot, LineMarkSeries, XAxis, YAxis, HorizontalGridLines, VerticalGridLines, Crosshair} from 'react-vis';
 const moment = require('moment-timezone');
 import Slider, { Range } from 'rc-slider';
 import 'rc-slider/assets/index.css';
@@ -21,6 +21,7 @@ export default function App() {
   const [lastDate, setLastDate] = useState(null);   // stores the last data that is used for sync
   const [interval, setInterval] = useState(0);      // helper for the interval UI element
   const [timeFilter, setTimeFilter] = useState(null); // defines the time filter for the graph
+  const [graphCrossdata, setGraphCrossdata] = useState({crosshairValues: []});
 
   // --- LOGIC ---
   // load all data initially
@@ -29,13 +30,13 @@ export default function App() {
       api.getSettings().then(data => setSettings(data))
       api.getTags().then(data => setTags(data));
       api.getNewSpeeds(lastDate).then(data => {
-        let updateFilter = timeFilter[1] == speeds[0].measure_time;
+        let updateFilter = timeFilter != null && (timeFilter[1] == speeds[0].measure_time);
+        let newData = data.concat(speeds)
 
-        setSpeeds(data.concat(speeds)).then( x => {
-          if (updateFilter == true && speeds.length > 0) {
-            setTimeFilter([timeFilter[0], speeds[0].measure_time])
-          }
-        })
+        setSpeeds(newData)
+        if (updateFilter == true && newData.length > 0) {
+          setTimeFilter([timeFilter[0], newData[0].measure_time])
+        }
 
         if (data.length > 0) {
           setLastDate(data[0].measure_time)
@@ -114,15 +115,15 @@ export default function App() {
     let data = [
       {
         label: "Download (MB/s)",
-        data: filterSpeed.map(data => { return {x: data.measure_time.toDate(), y: data.download}; })
+        data: filterSpeed.map(data => { return {x: data.measure_time, y: data.download}; })
       },
       {
         label: "Upload (MB/s)",
-        data: filterSpeed.map(data => { return {x: data.measure_time.toDate(), y: data.upload}; })
+        data: filterSpeed.map(data => { return {x: data.measure_time, y: data.upload}; })
       },
       {
         label: "Ping (ms)",
-        data: filterSpeed.map(data => { return {x: data.measure_time.toDate(), y: data.ping}; })
+        data: filterSpeed.map(data => { return {x: data.measure_time, y: data.ping}; })
       }
     ]
     let axes = [
@@ -130,11 +131,21 @@ export default function App() {
       { type: 'linear', position: 'left' }
     ]
     return (
-      <div style={{height: "400px", width: "100%"}}>
-        <Chart data={data} axes={axes} tooltip primaryCursor secondaryCursor />
-      </div>
+      <FlexibleWidthXYPlot onMouseLeave={() => setGraphCrossdata({crosshairValues: []})} height={400}>
+        <HorizontalGridLines />
+        <VerticalGridLines />
+        <LineMarkSeries data={data[0].data} onNearestX={(val, idx) => setGraphCrossdata({crosshairValues: data.map(d => d.data[idx.index]).map(d => ({x: d.x.valueOf(), y: d.y}))})} />
+        <LineMarkSeries data={data[1].data} />
+        <LineMarkSeries data={data[2].data} />
+        <XAxis title="Time" tickLabelAngle={-20} tickFormat={v => moment(v).format("DD-MM-YY hh:mm")} />
+        <YAxis title="Speed" />
+        <Crosshair
+          values={graphCrossdata.crosshairValues}
+          itemsFormat={vdata => vdata.map((d, idx) => ({title: data[idx].label, value: d.y}))}
+          titleFormat={data => ({title: moment(data[0].x).format("DD-MM-YY hh:mm"), value: null})}
+        />
+      </FlexibleWidthXYPlot>
     );
-    // <Crosshair values={this.state.crosshairValues} className={'data-legend'} />
   }
 
   const scanButton = () => {
