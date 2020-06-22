@@ -31,7 +31,7 @@ export default function App() {
       api.getSettings().then(data => setSettings(data))
       api.getTags().then(data => setTags(data));
       api.getNewSpeeds(lastDate).then(data => {
-        let updateFilter = timeFilter != null && (timeFilter[1] == speeds[0].measure_time);
+        let updateFilter = timeFilter != null && (timeFilter[1].unix() == speeds[0].measure_time.unix());
         let newData = data.concat(speeds)
 
         setSpeeds(newData)
@@ -77,7 +77,7 @@ export default function App() {
     else {
       return refreshData();
     }
-  }, [api, lastDate])
+  }, [api, lastDate, timeFilter])
 
   // --- ACTIONS ---
 
