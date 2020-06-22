@@ -1,4 +1,4 @@
-import React, {useState, useEffect, Fragment} from "react";
+import React, {useState, useEffect, Fragment, useMemo} from "react";
 import {Button, Container, Row, Col, Jumbotron, Spinner} from 'react-bootstrap';
 import {FlexibleWidthXYPlot, LineMarkSeries, XAxis, YAxis, HorizontalGridLines, VerticalGridLines, Crosshair} from 'react-vis';
 const moment = require('moment-timezone');
@@ -23,6 +23,7 @@ export default function App() {
   const [timeFilter, setTimeFilter] = useState(null); // defines the time filter for the graph
   const [graphCrossdata, setGraphCrossdata] = useState({crosshairValues: []});
   const [graphHighlight, setGraphHighlight] = useState(null); // defines which graph is highlighted
+  const [smoothing, setSmoothing] = useState(0);   // defines if the graph is smoothed with moving average
 
   // --- LOGIC ---
   // load all data initially
@@ -100,8 +101,8 @@ export default function App() {
     }
   }
 
-  const filterData = () => {
-    let filterSpeed = speeds;
+  const filterData = (data) => {
+    let filterSpeed = data;
 
     // filter data
     if (timeFilter != null) {
@@ -113,6 +114,59 @@ export default function App() {
     }
 
     return filterSpeed;
+  }
+
+  const smoothData = (data, smoothing) => {
+    if (smoothing == 0 || smoothing == null) {
+      return data;
+    }
+
+    const smooth = (arr, item) => {
+      let wnd = arr[1];
+      let out = arr[0];
+      wnd = wnd.slice(1);
+      wnd.push(Object.assign({}, item));
+
+      let avg_item = Object.assign({}, item);
+
+      if (item.download > 0) {
+        ["download", "upload", "ping"].forEach(key => {
+          avg_item[key] = (wnd.reduce((p, c) => p + (c == null ? 0 : c[key]), 0) / wnd.reduce((p, c) => p + (c == null ? 0 : 1), 0));
+        })
+      }
+      out.push(avg_item);
+      
+      return [out, wnd];
+    };
+
+    return [...data].reverse().reduce((p, c) => smooth(p, c), [[], new Array(smoothing).fill(null)])[0].reverse();
+  }
+
+  const computeDown = (data) => {
+    let downTime = 0;
+    let downCount = 0;
+    let isDown = null;
+    
+    // iterate through all data and compute down time
+    data.forEach(item => {
+      if (item.download == 0) {
+        if (isDown == null) {
+          downCount += 1;
+          isDown = item.measure_time;
+        }
+      }
+      else {
+        if (isDown != null) {
+          downTime += item.measure_time.diff(isDown);
+        }
+        isDown = null;
+      }
+    })
+
+    return {
+      time: moment.duration(downTime),
+      counts: downCount
+    }
   }
 
   // --- RENDER ---
@@ -147,7 +201,7 @@ export default function App() {
         <YAxis title="Speed" />
         <Crosshair
           values={graphCrossdata.crosshairValues}
-          itemsFormat={vdata => vdata.map((d, idx) => ({title: data[idx].label, value: d.y}))}
+          itemsFormat={vdata => vdata.map((d, idx) => ({title: data[idx].label, value: d.y.toFixed(2)}))}
           titleFormat={data => ({title: moment(data[0].x).format("DD-MM-YY HH:mm"), value: null})}
         />
       </FlexibleWidthXYPlot>
@@ -185,7 +239,9 @@ export default function App() {
     minTime = speeds[speeds.length - 1].measure_time.valueOf();
     maxTime = speeds[0].measure_time.valueOf();
   }
-  let filterSpeeds = filterData();
+  const smoothSpeed = useMemo(() => smoothData(speeds, smoothing), [speeds, smoothing]);
+  let filterSpeeds = filterData(smoothSpeed);
+  let downs = computeDown(filterSpeeds);
 
   return ( 
     <Container>
@@ -208,13 +264,18 @@ export default function App() {
         <Row>
           {createGraph(filterSpeeds)}
         </Row>
-        <Row>
-          <Col sm={8}>
+        <Row style={{marginTop: "10px"}}>
+          <Col sm={6}>
             <h6>Update Interval: </h6>
             <Slider onChange={(value) => setInterval(value)} min={1} max={120} defaultValue={settings["interval"] || 30} onAfterChange={updateInterval}/>
             <span> Every {interval} minutes</span>
           </Col>
-          <Col style={{textAlign: "right"}} sm={{span: 4}}>
+          <Col sm={4}>
+            <h6>Smoothing: </h6>
+            <Slider onChange={(value) => setSmoothing(value)} min={0} max={10} defaultValue={smoothing}/>
+            <span>{smoothing > 0 ? smoothing + " window size" : "disabled"}</span>
+          </Col>
+          <Col style={{textAlign: "right"}} sm={{span: 2}}>
             {scanButton()}
           </Col>
         </Row>
@@ -223,9 +284,11 @@ export default function App() {
         <Row>
           <Col xs={6} md={4} style={{textAlign: "center"}}>
             <h5>Avg Download: {(filterSpeeds.reduce((acc, val) => acc + val.download, 0) / filterSpeeds.length).toFixed(2)} MB/s</h5>
+            <h5>Avg Upload: {(filterSpeeds.reduce((acc, val) => acc + val.upload, 0) / filterSpeeds.length).toFixed(2)} MB/s</h5>
           </Col>
           <Col xs={6} md={4} style={{textAlign: "center"}}>
-            <h5>Avg Upload: {(filterSpeeds.reduce((acc, val) => acc + val.upload, 0) / filterSpeeds.length).toFixed(2)} MB/s</h5>
+            <h5>Total Down: {downs.time.humanize({h: 24})}</h5>
+            <h5>Down Count: {downs.counts}</h5>
           </Col>
           <Col xs={6} md={4} style={{textAlign: "center"}}>
             <h5>Avg Ping: {(filterSpeeds.reduce((acc, val) => acc + val.ping, 0) / filterSpeeds.length).toFixed(2)} ms</h5>
