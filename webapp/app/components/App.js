@@ -22,6 +22,7 @@ export default function App() {
   const [interval, setInterval] = useState(0);      // helper for the interval UI element
   const [timeFilter, setTimeFilter] = useState(null); // defines the time filter for the graph
   const [graphCrossdata, setGraphCrossdata] = useState({crosshairValues: []});
+  const [graphHighlight, setGraphHighlight] = useState(null); // defines which graph is highlighted
 
   // --- LOGIC ---
   // load all data initially
@@ -134,9 +135,9 @@ export default function App() {
       <FlexibleWidthXYPlot onMouseLeave={() => setGraphCrossdata({crosshairValues: []})} height={400}>
         <HorizontalGridLines />
         <VerticalGridLines />
-        <LineMarkSeries data={data[0].data} onNearestX={(val, idx) => setGraphCrossdata({crosshairValues: data.map(d => d.data[idx.index]).map(d => ({x: d.x.valueOf(), y: d.y}))})} />
-        <LineMarkSeries data={data[1].data} />
-        <LineMarkSeries data={data[2].data} />
+        <LineMarkSeries size={2.5} curve={'curveMonotoneX'} opacity={graphHighlight == null || graphHighlight == "download" ? 1 : 0.2} onSeriesMouseOver={() => setGraphHighlight("download")} onSeriesMouseOut={() => setGraphHighlight(null)} data={data[0].data} onNearestX={(val, idx) => setGraphCrossdata({crosshairValues: data.map(d => d.data[idx.index]).map(d => ({x: d.x.valueOf(), y: d.y}))})} />
+        <LineMarkSeries size={2.5} curve={'curveMonotoneX'} opacity={graphHighlight == null || graphHighlight == "upload" ? 1 : 0.2} onSeriesMouseOver={() => setGraphHighlight("upload")} onSeriesMouseOut={() => setGraphHighlight(null)} data={data[1].data} />
+        <LineMarkSeries size={2.5} curve={'curveMonotoneX'} opacity={graphHighlight == null || graphHighlight == "ping" ? 1 : 0.2} onSeriesMouseOver={() => setGraphHighlight("ping")} onSeriesMouseOut={() => setGraphHighlight(null)} data={data[2].data} />
         <XAxis title="Time" tickLabelAngle={-20} tickFormat={v => moment(v).format("DD-MM-YY hh:mm")} />
         <YAxis title="Speed" />
         <Crosshair
