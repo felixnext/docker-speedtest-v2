@@ -73,7 +73,7 @@ export default function App() {
     else {
       return refreshData();
     }
-  }, [api, lastDate, timeFilter])
+  }, [api, lastDate])
 
   // --- ACTIONS ---
 
@@ -170,7 +170,7 @@ export default function App() {
     if (timeFilter != null) {
       return (<Fragment>
         <Col xs={4}>
-          <span>{timeFilter[0].format("MM/DD/YY HH:mm")}</span>
+          <span style={{}}>{timeFilter[0].format("MM/DD/YY HH:mm")}</span>
           <span> to </span>
           <span>{timeFilter.length > 1 ? timeFilter[1].format("MM/DD/YY HH:mm") : ( moment(maxTime).format("MM/DD/YY HH:mm") + " (newest)")}</span>
         </Col>
