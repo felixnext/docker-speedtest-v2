@@ -7,6 +7,7 @@ import fire
 from time import time, sleep
 import psycopg2 as psy
 from dateutil import parser
+from datetime import datetime
 
 class Tester():
     def __init__(self, pwd, host, port="5432"):
@@ -81,6 +82,7 @@ class Tester():
     def collect(self):
         '''Collects a single speedtest.'''
         results = None
+        failcount = 0
         while results is None:
             try:
                 test = speed.Speedtest()
@@ -91,6 +93,10 @@ class Tester():
             except Exception as e:
                 print("WARNING: Speedtest failed ({})".format(e))
                 sleep(1)
+                failcount += 1
+                if failcount > 1:
+                    print("WARNING: No speed collected, internet appears down")
+                    results = { "download": 0, "upload": 0, "ping": 0, "timestamp": datetime.utcnow(), "client": { "isp": "down", "ip": "down", "country": "down" }}
         
         # convert to Mbits
         for v in ["download", "upload"]:
