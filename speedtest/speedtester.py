@@ -90,6 +90,8 @@ class Tester():
                 test.download()
                 test.upload()
                 results = test.results.dict()
+                # parse timestamp (+ adjust timezone) 
+                results["timestamp"] = parser.parse(results["timestamp"]).astimezone(tz=None)
             except Exception as e:
                 print("WARNING: Speedtest failed ({})".format(e))
                 sleep(1)
@@ -101,10 +103,6 @@ class Tester():
         # convert to Mbits
         for v in ["download", "upload"]:
             results[v] = results[v] / (1024 * 1024)
-        
-        # parse timestamp (+ adjust timezone) 
-        # FEAT: (note: Make sure this is UTC?)
-        results["timestamp"] = parser.parse(results["timestamp"]).astimezone(tz=None)
         
         # print
         print("INFO: Current speed is: {:.2f} MB/s download - {:.2f} MB/s upload".format(results["download"], results["upload"]))
