@@ -31,16 +31,12 @@ export default function App() {
       api.getSettings().then(data => setSettings(data))
       api.getTags().then(data => setTags(data));
       api.getNewSpeeds(lastDate).then(data => {
-        let updateFilter = timeFilter != null && (timeFilter[1].unix() == speeds[0].measure_time.unix());
         let newData = data.concat(speeds)
 
         setSpeeds(newData)
-        if (updateFilter == true && newData.length > 0) {
-          setTimeFilter([timeFilter[0], newData[0].measure_time])
-        }
 
-        if (data.length > 0) {
-          setLastDate(data[0].measure_time)
+        if (newData.length > 0) {
+          setLastDate(newData[0].measure_time)
         }
         else {
           return refreshData();
@@ -62,7 +58,7 @@ export default function App() {
       setSpeeds(data)
       if (data.length > 0) {
         setLastDate(data[0].measure_time)
-        setTimeFilter([data[data.length > 20 ? 20 : data.length - 1].measure_time, data[0].measure_time])
+        setTimeFilter([data[data.length > 20 ? 20 : data.length - 1].measure_time])
       }
       else {
         return refreshData()
@@ -94,9 +90,14 @@ export default function App() {
   }
 
   const updateGraphScope = (numbers) => {
-    let start = numbers[0]
-    let end = numbers[1]
-    setTimeFilter([moment.utc(start).local(), moment.utc(end).local()])
+    let start = moment.utc(numbers[0]).local()
+    let end = moment.utc(numbers[1]).local()
+    let isFinal = speeds.length > 0 && (end.unix() == speeds[0].measure_time.unix());
+    if (isFinal) {
+      setTimeFilter([moment.utc(start).local()])
+    } else {
+      setTimeFilter([moment.utc(start).local(), moment.utc(end).local()])
+    }
   }
 
   const filterData = () => {
@@ -104,7 +105,11 @@ export default function App() {
 
     // filter data
     if (timeFilter != null) {
-      filterSpeed = filterSpeed.filter(item => item.measure_time >= timeFilter[0] && item.measure_time <= timeFilter[1]);
+      if (timeFilter.length > 1) {
+        filterSpeed = filterSpeed.filter(item => item.measure_time >= timeFilter[0] && item.measure_time <= timeFilter[1]);
+      } else {
+        filterSpeed = filterSpeed.filter(item => item.measure_time >= timeFilter[0]);
+      }
     }
 
     return filterSpeed;
@@ -138,12 +143,12 @@ export default function App() {
         <LineMarkSeries size={2.5} curve={'curveMonotoneX'} opacity={graphHighlight == null || graphHighlight == "download" ? 1 : 0.2} onSeriesMouseOver={() => setGraphHighlight("download")} onSeriesMouseOut={() => setGraphHighlight(null)} data={data[0].data} onNearestX={(val, idx) => setGraphCrossdata({crosshairValues: data.map(d => d.data[idx.index]).map(d => ({x: d.x.valueOf(), y: d.y}))})} />
         <LineMarkSeries size={2.5} curve={'curveMonotoneX'} opacity={graphHighlight == null || graphHighlight == "upload" ? 1 : 0.2} onSeriesMouseOver={() => setGraphHighlight("upload")} onSeriesMouseOut={() => setGraphHighlight(null)} data={data[1].data} />
         <LineMarkSeries size={2.5} curve={'curveMonotoneX'} opacity={graphHighlight == null || graphHighlight == "ping" ? 1 : 0.2} onSeriesMouseOver={() => setGraphHighlight("ping")} onSeriesMouseOut={() => setGraphHighlight(null)} data={data[2].data} />
-        <XAxis title="Time" tickLabelAngle={-20} tickFormat={v => moment(v).format("DD-MM-YY hh:mm")} />
+        <XAxis title="Time" tickLabelAngle={-20} tickFormat={v => moment(v).format("DD-MM-YY HH:mm")} />
         <YAxis title="Speed" />
         <Crosshair
           values={graphCrossdata.crosshairValues}
           itemsFormat={vdata => vdata.map((d, idx) => ({title: data[idx].label, value: d.y}))}
-          titleFormat={data => ({title: moment(data[0].x).format("DD-MM-YY hh:mm"), value: null})}
+          titleFormat={data => ({title: moment(data[0].x).format("DD-MM-YY HH:mm"), value: null})}
         />
       </FlexibleWidthXYPlot>
     );
@@ -161,13 +166,13 @@ export default function App() {
     }
   }
 
-  const renderFilterTime = () => {
+  const renderFilterTime = (maxTime) => {
     if (timeFilter != null) {
       return (<Fragment>
         <Col xs={4}>
-          <span>{timeFilter[0].format("MM/DD/YY hh:mm")}</span>
+          <span>{timeFilter[0].format("MM/DD/YY HH:mm")}</span>
           <span> to </span>
-          <span>{timeFilter[1].format("MM/DD/YY hh:mm")}</span>
+          <span>{timeFilter.length > 1 ? timeFilter[1].format("MM/DD/YY HH:mm") : ( moment(maxTime).format("MM/DD/YY HH:mm") + " (newest)")}</span>
         </Col>
       </Fragment>);
     }
@@ -195,10 +200,10 @@ export default function App() {
           <Col xs={6}>
             <h4>Selected Time:</h4>
           </Col>
-          {renderFilterTime()}
+          {renderFilterTime(maxTime)}
         </Row>
         <Row>
-          <Range allowCross={false} value={timeFilter != null ? [timeFilter[0].valueOf(), timeFilter[1].valueOf()] : []} onChange={updateGraphScope} min={minTime} max={maxTime} />
+          <Range allowCross={false} value={timeFilter != null ? [timeFilter[0].valueOf(), timeFilter.length > 1 ? timeFilter[1].valueOf() : maxTime] : []} onChange={updateGraphScope} min={minTime} max={maxTime} />
         </Row>
         <Row>
           {createGraph(filterSpeeds)}
