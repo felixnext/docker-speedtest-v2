@@ -170,9 +170,9 @@ export default function App() {
     if (timeFilter != null) {
       return (<Fragment>
         <Col xs={4}>
-          <span style={{}}>{timeFilter[0].format("MM/DD/YY HH:mm")}</span>
+          <span style={{fontWeight:"bold"}}>{timeFilter[0].format("MM/DD/YY HH:mm")}</span>
           <span> to </span>
-          <span>{timeFilter.length > 1 ? timeFilter[1].format("MM/DD/YY HH:mm") : ( moment(maxTime).format("MM/DD/YY HH:mm") + " (newest)")}</span>
+          <span style={{fontWeight:"bold"}}>{timeFilter.length > 1 ? timeFilter[1].format("MM/DD/YY HH:mm") : ( moment(maxTime).format("MM/DD/YY HH:mm") + " (newest)")}</span>
         </Col>
       </Fragment>);
     }
