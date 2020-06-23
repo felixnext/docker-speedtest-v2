@@ -121,13 +121,16 @@ export default function App() {
   }
 
   const smoothData = (data, sm_size) => {
-    if (sm_size == 0 || sm_size == null) {
+    if (sm_size <= 1 || sm_size == null) {
       return data;
     }
+    
+    const every = Math.ceil(sm_size / 5)
 
     const smooth = (arr, item) => {
       let wnd = arr[1];
       let out = arr[0];
+      let idx = arr[2];
       wnd = wnd.slice(1);
       wnd.push(Object.assign({}, item));
 
@@ -138,12 +141,14 @@ export default function App() {
           avg_item[key] = (wnd.reduce((p, c) => p + (c == null ? 0 : c[key]), 0) / wnd.reduce((p, c) => p + (c == null ? 0 : 1), 0));
         })
       }
-      out.push(avg_item);
+      if (idx % every == 0 || avg_item.download == 0 || (out.length > 0 && out[out.length - 1].download == 0)) {
+        out.push(avg_item);
+      }
       
-      return [out, wnd];
+      return [out, wnd, idx + 1];
     };
 
-    return [...data].reverse().reduce((p, c) => smooth(p, c), [[], Array(sm_size).fill(null)])[0].reverse();
+    return [...data].reverse().reduce((p, c) => smooth(p, c), [[], Array(sm_size).fill(null), 0])[0].reverse();
   }
 
   const computeDown = (data) => {
@@ -152,7 +157,7 @@ export default function App() {
     let isDown = null;
     
     // iterate through all data and compute down time
-    data.forEach(item => {
+    [...data].reverse().forEach(item => {
       if (item.download == 0) {
         if (isDown == null) {
           downCount += 1;
@@ -276,8 +281,8 @@ export default function App() {
           </Col>
           <Col sm={4}>
             <h6>Smoothing: </h6>
-            <Slider onChange={(value) => setCookies("smoothing", value)} min={0} max={10} defaultValue={smoothing}/>
-            <span>{smoothing > 0 ? smoothing + " window size" : "disabled"}</span>
+            <Slider onChange={(value) => setCookies("smoothing", value)} min={1} max={20} defaultValue={smoothing}/>
+            <span>{smoothing > 1 ? smoothing + " window size" : "disabled"}</span>
           </Col>
           <Col style={{textAlign: "right"}} sm={{span: 2}}>
             {scanButton()}
