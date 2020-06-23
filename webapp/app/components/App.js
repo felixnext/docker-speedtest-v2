@@ -4,6 +4,7 @@ import {FlexibleWidthXYPlot, LineMarkSeries, XAxis, YAxis, HorizontalGridLines, 
 const moment = require('moment-timezone');
 import Slider, { Range } from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import {useCookies} from 'react-cookie';
 
 import styles from "../css/app.less";
 import '../../node_modules/react-vis/dist/style.css';
@@ -20,10 +21,11 @@ export default function App() {
   const [tags, setTags] = useState([]);             // stores all tags
   const [lastDate, setLastDate] = useState(null);   // stores the last data that is used for sync
   const [interval, setInterval] = useState(0);      // helper for the interval UI element
-  const [timeFilter, setTimeFilter] = useState(null); // defines the time filter for the graph
+  const [cookies, setCookies, rmCookies] = useCookies(['timeFilter', 'smoothing']); // defines the time filter for the graph
   const [graphCrossdata, setGraphCrossdata] = useState({crosshairValues: []});
   const [graphHighlight, setGraphHighlight] = useState(null); // defines which graph is highlighted
-  const [smoothing, setSmoothing] = useState(0);   // defines if the graph is smoothed with moving average
+  const smoothing = parseInt(cookies["smoothing"] || "0")
+  const timeFilter = (cookies["timeFilter"] != null ? cookies["timeFilter"].map(x => moment(x)) : null)
 
   // --- LOGIC ---
   // load all data initially
@@ -59,7 +61,9 @@ export default function App() {
       setSpeeds(data)
       if (data.length > 0) {
         setLastDate(data[0].measure_time)
-        setTimeFilter([data[data.length > 20 ? 20 : data.length - 1].measure_time])
+        if (timeFilter == null) {
+          setCookies("timeFilter", [data[data.length > 20 ? 20 : data.length - 1].measure_time])
+        }
       }
       else {
         return refreshData()
@@ -95,9 +99,9 @@ export default function App() {
     let end = moment.utc(numbers[1]).local()
     let isFinal = speeds.length > 0 && (end.unix() == speeds[0].measure_time.unix());
     if (isFinal) {
-      setTimeFilter([moment.utc(start).local()])
+      setCookies("timeFilter", [moment.utc(start).local()])
     } else {
-      setTimeFilter([moment.utc(start).local(), moment.utc(end).local()])
+      setCookies("timeFilter", [moment.utc(start).local(), moment.utc(end).local()])
     }
   }
 
@@ -116,8 +120,8 @@ export default function App() {
     return filterSpeed;
   }
 
-  const smoothData = (data, smoothing) => {
-    if (smoothing == 0 || smoothing == null) {
+  const smoothData = (data, sm_size) => {
+    if (sm_size == 0 || sm_size == null) {
       return data;
     }
 
@@ -139,7 +143,7 @@ export default function App() {
       return [out, wnd];
     };
 
-    return [...data].reverse().reduce((p, c) => smooth(p, c), [[], new Array(smoothing).fill(null)])[0].reverse();
+    return [...data].reverse().reduce((p, c) => smooth(p, c), [[], Array(sm_size).fill(null)])[0].reverse();
   }
 
   const computeDown = (data) => {
@@ -239,7 +243,7 @@ export default function App() {
     minTime = speeds[speeds.length - 1].measure_time.valueOf();
     maxTime = speeds[0].measure_time.valueOf();
   }
-  const smoothSpeed = useMemo(() => smoothData(speeds, smoothing), [speeds, smoothing]);
+  const smoothSpeed = useMemo(() => smoothData(speeds, smoothing), [speeds, cookies, tags]);
   let filterSpeeds = filterData(smoothSpeed);
   let downs = computeDown(filterSpeeds);
 
@@ -272,7 +276,7 @@ export default function App() {
           </Col>
           <Col sm={4}>
             <h6>Smoothing: </h6>
-            <Slider onChange={(value) => setSmoothing(value)} min={0} max={10} defaultValue={smoothing}/>
+            <Slider onChange={(value) => setCookies("smoothing", value)} min={0} max={10} defaultValue={smoothing}/>
             <span>{smoothing > 0 ? smoothing + " window size" : "disabled"}</span>
           </Col>
           <Col style={{textAlign: "right"}} sm={{span: 2}}>
