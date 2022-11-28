@@ -16,6 +16,9 @@ RUN npm run build
 
 # production environment
 FROM nginx:stable-alpine
+RUN apk add --no-cache gettext
+COPY ./app/env.template.js /usr/share/nginx/html
+COPY nginx-entrypoint.sh /
 COPY --from=build /app/build /usr/share/nginx/html
 EXPOSE 80
-CMD [ "nginx", "-g", "daemon off;" ]
+ENTRYPOINT [ "sh", "/nginx-entrypoint.sh" ]

@@ -1,2 +1,3 @@
-export const API_HOST = "192.168.0.185";
-export const API_PORT = 7000;
+export const API_HOST = window.injectedEnv.API_HOST;
+export const API_PORT = window.injectedEnv.API_PORT;
+export const API_PROTOCOL = window.injectedEnv.API_PROTOCOL;
