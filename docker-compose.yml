@@ -39,5 +39,9 @@ services:
         restart: always
         ports: 
             - "80:80"
+        environment:
+            API_HOST: "192.168.0.185" # Optional, defaults to the 'hostname' of the webapp e.g. '192.168.1.69', or 'speedtest.domain.com'
+            API_PORT: "7000" # Optional, only needed if you change the above 'speedtest-api' port
+            API_PROTOCOL: "http" # Optional, defaults to the http/https protocol used to access the webapp
         depends_on: 
             - speedtest-api

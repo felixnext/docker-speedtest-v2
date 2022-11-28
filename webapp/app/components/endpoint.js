@@ -4,8 +4,9 @@ const conf = require('../config');
 export default class ApiHandler {
     constructor() {
         // retrieve the api location
-        this.host = conf.API_HOST || "localhost";
+        this.host = conf.API_HOST || window.location.hostname;
         this.port = conf.API_PORT || 7000;
+        this.protocol = conf.API_PROTOCOL || window.location.protocol.replace(":", "");
 
         //console.log("API AT LOCATION: " + this.host + ":" + this.port);
     }
@@ -31,7 +32,7 @@ export default class ApiHandler {
 
     //! Helper that sends a get request to the server
     getContentData(url) {
-        let final_url = "http://" + this.host + ":" + this.port + url;
+        let final_url = `${this.protocol}://${this.host}:${this.port}${url}`;
         let ref = this
         return new Promise(function(resolve, reject) {
             ref._getData(final_url)
